@@ -34,8 +34,13 @@ function Round(number, players, timeLimit, wordPackName, onResults) {
 	this.finalNumOfLinks;
 }
 
-Round.prototype.start = function() {
-	this.finalNumOfLinks = this.players.length;
+Round.prototype.start = function(numRounds) {
+	// Must have at least 2 rounds
+	if (numRounds <= 2) {
+		this.finalNumOfLinks = this.players.length;
+	} else {
+		this.finalNumOfLinks = numRounds;
+	}
 
 	// demo mode
 	if (this.players.length === 1) {

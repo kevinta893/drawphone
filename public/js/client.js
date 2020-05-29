@@ -327,11 +327,13 @@ function Lobby() {
 	this.wordFirstCheckbox = $("#lobby-settings-wordfirst");
 	this.timeLimitDropdown = $("#lobby-settings-timelimit");
 	this.wordPackDropdown = $("#lobby-settings-wordpack");
+	this.numRoundsDropdown = $("#lobby-settings-numrounds");
 	this.viewPreviousResultsButton = $("#lobby-prevres");
 	this.gameCode = "";
 
 	//this is what the admin selects from the dropdowns
 	this.selectedTimeLimit = false;
+	this.selectedNumRounds = false;
 	this.wordPack = false;
 
 	this.userList = new UserList($("#lobby-players"));
@@ -366,7 +368,7 @@ Lobby.prototype.initialize = function() {
 		} else {
 			swal(
 				"Not ready to start",
-				"Make sure have selected a word pack, a drawing time limit, and that you have at least four players.",
+				"Make sure have selected a word pack, a drawing time limit, selected the number of rounds, and that you have at least four players.",
 				"error"
 			);
 			ga("send", "event", "Lobby", "disallowed start attempt");
@@ -399,8 +401,62 @@ Lobby.prototype.initialize = function() {
 			case "30 seconds":
 				self.selectedTimeLimit = 30;
 				break;
+			case "45 seconds":
+				self.selectedTimeLimit = 30;
+				break;
 			case "1 minute":
 				self.selectedTimeLimit = 60;
+				break;
+			case "1.5 minutes":
+				self.selectedTimeLimit = 90;
+				break;
+			case "2 minutes":
+				self.selectedTimeLimit = 120;
+				break;
+			case "3 minutes":
+				self.selectedTimeLimit = 180;
+				break;
+			case "5 minutes":
+				self.selectedTimeLimit = 300;
+				break;
+		}
+
+		self.checkIfReadyToStart();
+	});
+	this.numRoundsDropdown.on("change", function() {
+		switch (self.numRoundsDropdown[0].value) {
+			case "Number of Players (recommended)":
+				self.selectedNumRounds = 0;
+				break;
+			case "4 rounds":
+				self.selectedNumRounds = 4;
+				break;
+			case "6 rounds":
+				self.selectedNumRounds = 6;
+				break;
+			case "8 rounds":
+				self.selectedNumRounds = 8;
+				break;
+			case "10 rounds":
+				self.selectedNumRounds = 10;
+				break;
+			case "12 rounds":
+				self.selectedNumRounds = 12;
+				break;
+			case "18 rounds":
+				self.selectedNumRounds = 18;
+				break;
+			case "24 rounds":
+				self.selectedNumRounds = 24;
+				break;
+			case "30 rounds":
+				self.selectedNumRounds = 30;
+				break;
+			case "50 rounds":
+				self.selectedNumRounds = 50;
+				break;
+			case "100 rounds":
+				self.selectedNumRounds = 100;
 				break;
 		}
 
@@ -420,6 +476,7 @@ Lobby.prototype.initialize = function() {
 
 	this.wordFirstCheckbox.prop("checked", false);
 	this.timeLimitDropdown.prop("selectedIndex", 0);
+	this.numRoundsDropdown.prop("selectedIndex", 0);
 	this.wordPackDropdown.prop("selectedIndex", 0);
 	this.wordPackDropdown.prop("disabled", false);
 
@@ -443,6 +500,7 @@ Lobby.prototype.show = function(data) {
 		if (data.success) {
 			Screen.gameCode = data.game.code;
 			this.selectedTimeLimit = false;
+			this.selectedNumRounds = false;
 			this.update({
 				success: true,
 				gameCode: data.game.code,
@@ -478,6 +536,10 @@ Lobby.prototype.show = function(data) {
 		//reset the time limit selector
 		this.selectedTimeLimit = false;
 		this.timeLimitDropdown.prop("selectedIndex", 0);
+
+		//reset the number of rounds selector
+		this.selectedNumRounds = false;
+		this.numRoundsDropdown.prop("selectedIndex", 0);
 
 		//reset the word pack selector
 		this.wordPack = false;
@@ -527,6 +589,7 @@ Lobby.prototype.update = function(res) {
 Lobby.prototype.checkIfReadyToStart = function() {
 	if (
 		this.selectedTimeLimit !== false &&
+		this.selectedNumRounds !== false &&
 		(this.wordPack !== false || this.wordFirstCheckbox.is(":checked")) &&
 		(this.userList.numberOfPlayers >= 4 ||
 			this.userList.numberOfPlayers === 1)
@@ -544,10 +607,12 @@ Lobby.prototype.start = function() {
 	Screen.waitingForResponse = true;
 	socket.emit("tryStartGame", {
 		timeLimit: this.selectedTimeLimit,
-		wordPackName: this.wordPack
+		wordPackName: this.wordPack,
+		numRounds: this.selectedNumRounds
 	});
 	ga("send", "event", "Game", "start");
 	ga("send", "event", "Game", "time limit", this.selectedTimeLimit);
+	ga("send", "event", "Game", "num rounds", this.selectedNumRounds);
 	ga("send", "event", "Game", "word pack", this.wordPack);
 	ga(
 		"send",

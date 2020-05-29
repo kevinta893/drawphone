@@ -91,7 +91,28 @@ block content
           option 10 seconds
           option 15 seconds
           option 30 seconds
+          option 45 seconds
           option 1 minute
+          option 1.5 minutes
+          option 2 minutes
+          option 3 minutes
+          option 5 minutes
+        br
+        label Number of Rounds:
+        select.form-control#lobby-settings-numrounds
+          option(disabled='', selected='') Select number of rounds...
+          option Number of Players (recommended)
+          option 4 rounds
+          option 6 rounds
+          option 8 rounds
+          option 10 rounds
+          option 12 rounds
+          option 18 rounds
+          option 24 rounds
+          option 30 rounds
+          option 50 rounds
+          option 100 rounds
+
     br
     .btn-toolbar
       button#lobby-leave.btn.btn-default.btn-lg(type='button') Leave Game
