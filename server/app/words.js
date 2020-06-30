@@ -8,6 +8,7 @@ const PACK_NAMES = [
 	"Pictionary (recommended)",
 	"Telestrations",
 	"Cards Against Humanity (18+)",
+	"Cards Against Humanity Family Edition (13+)",
 	"Animals",
 	"Adjectives",
 	"Verbs"
@@ -73,7 +74,8 @@ WordPacks.prototype.getRandomWord = function(packName) {
 WordPacks.getAllPackNames = function(excludeNSFW) {
 	var names = [];
 	PACK_NAMES.forEach(function(packName) {
-		if (!excludeNSFW || !packName.includes("18+")) {
+		// + for 18+ or 13+
+		if (!excludeNSFW || !packName.includes("+")) {
 			names.push(packName);
 		}
 	});

@@ -155,7 +155,12 @@ Game.prototype.sendToAll = function(event, data) {
 	});
 };
 
-Game.prototype.startNewRound = function(timeLimit, wordPackName, numRounds) {
+Game.prototype.startNewRound = function(
+	timeLimit,
+	wordPackName,
+	showNeighbors,
+	numRounds
+) {
 	this.inProgress = true;
 
 	var self = this;
@@ -164,6 +169,7 @@ Game.prototype.startNewRound = function(timeLimit, wordPackName, numRounds) {
 		this.players,
 		timeLimit,
 		wordPackName,
+		showNeighbors,
 		function() {
 			//ran when results are sent
 			self.inProgress = false;

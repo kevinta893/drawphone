@@ -43,6 +43,7 @@ module.exports = function(app) {
 				thisGame.startNewRound(
 					data.timeLimit,
 					data.wordPackName,
+					data.showNeighbors,
 					data.numRounds
 				);
 			}
@@ -69,6 +70,8 @@ module.exports = function(app) {
 		});
 
 		socket.on("kickPlayer", function(data) {
+			if (!thisGame || !thisUser) return;
+
 			var idToKick = data.playerToKick.id;
 			var playerToKick = thisGame.getPlayer(idToKick);
 			if (thisUser.isAdmin && playerToKick) {

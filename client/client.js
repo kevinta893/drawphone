@@ -5,6 +5,21 @@
 
 /* global $, swal, fabric, io, ga */
 
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-sweetalert/dist/sweetalert.css";
+import "typeface-pangolin";
+import "@fortawesome/fontawesome-free/svgs/solid/pencil-alt.svg";
+import "@fortawesome/fontawesome-free/svgs/solid/phone-alt.svg";
+import "@fortawesome/fontawesome-free/svgs/solid/arrow-right.svg";
+import "./styles.css";
+
+import "bootstrap";
+import io from "socket.io-client";
+import { fabric } from "fabric";
+import "blueimp-canvas-to-blob";
+import swal from "bootstrap-sweetalert";
+import Dexie from "dexie";
+
 //prevent page from refreshing when Join game buttons are pressed
 $(function() {
 	$("form").submit(function() {
@@ -12,10 +27,14 @@ $(function() {
 	});
 });
 
+if (!location.hostname.startsWith("dpk")) {
+	$(".hide-on-dpk").show();
+}
+
 //
 //  Constants
 //
-const HIDDEN = "hidden";
+const HIDDEN = "d-none";
 const DRAWING = "drawing";
 const WORD = "word";
 const FIRST_WORD = "first-word";
@@ -33,6 +52,8 @@ function hideAll() {
 	$("#result").addClass(HIDDEN);
 	$("#waiting").addClass(HIDDEN);
 	$("#replace").addClass(HIDDEN);
+	$("#previous-player-container").addClass(HIDDEN);
+	$("#previous-player-arrow").addClass(HIDDEN);
 }
 
 function showElement(jq) {
@@ -325,6 +346,7 @@ function Lobby() {
 	this.startButton = $("#lobby-start");
 	this.gameSettings = $("#lobby-settings");
 	this.wordFirstCheckbox = $("#lobby-settings-wordfirst");
+	this.showNeighborsCheckbox = $("#lobby-settings-showNeighbors");
 	this.timeLimitDropdown = $("#lobby-settings-timelimit");
 	this.wordPackDropdown = $("#lobby-settings-wordpack");
 	this.numRoundsDropdown = $("#lobby-settings-numrounds");
@@ -335,6 +357,7 @@ function Lobby() {
 	this.selectedTimeLimit = false;
 	this.selectedNumRounds = false;
 	this.wordPack = false;
+	this.showNeighbors = false;
 
 	this.userList = new UserList($("#lobby-players"));
 }
@@ -384,6 +407,12 @@ Lobby.prototype.initialize = function() {
 		}
 		self.checkIfReadyToStart();
 	});
+	this.showNeighborsCheckbox.on("change", function() {
+		self.showNeighbors = !!self.showNeighborsCheckbox.is(":checked");
+
+		self.checkIfReadyToStart();
+		ga("send", "event", "Lobby", "show neighbors", self.showNeighbors);
+	});
 	this.timeLimitDropdown.on("change", function() {
 		switch (self.timeLimitDropdown[0].value) {
 			case "No time limit (recommended)":
@@ -402,7 +431,7 @@ Lobby.prototype.initialize = function() {
 				self.selectedTimeLimit = 30;
 				break;
 			case "45 seconds":
-				self.selectedTimeLimit = 30;
+				self.selectedTimeLimit = 45;
 				break;
 			case "1 minute":
 				self.selectedTimeLimit = 60;
@@ -475,6 +504,7 @@ Lobby.prototype.initialize = function() {
 	});
 
 	this.wordFirstCheckbox.prop("checked", false);
+	this.showNeighborsCheckbox.prop("checked", false);
 	this.timeLimitDropdown.prop("selectedIndex", 0);
 	this.numRoundsDropdown.prop("selectedIndex", 0);
 	this.wordPackDropdown.prop("selectedIndex", 0);
@@ -609,6 +639,7 @@ Lobby.prototype.start = function() {
 		timeLimit: this.selectedTimeLimit,
 		wordPackName: this.wordPack,
 		numRounds: this.selectedNumRounds
+		showNeighbors: this.showNeighbors
 	});
 	ga("send", "event", "Game", "start");
 	ga("send", "event", "Game", "time limit", this.selectedTimeLimit);
@@ -633,6 +664,11 @@ function Game(onWait) {
 
 	this.wordInput = $("#game-word-in");
 	this.timerDisplay = $("#game-timer");
+
+	this.neighboringPlayers = $("#neighboring-players-container");
+	this.leftPlayer = $("#previous-player");
+	this.youPlayer = $("#you-player");
+	this.rightPlayer = $("#next-player");
 
 	this.canvas;
 
@@ -769,6 +805,11 @@ Game.prototype.newLink = function(res) {
 	var lastLinkType = lastLink.type;
 	var count = res.data.count;
 	var finalCount = res.data.finalCount;
+
+	var showNeighbors = res.data.showNeighbors;
+	var playerList = res.data.players;
+	var thisPlayer = res.data.thisPlayer;
+
 	var newLinkType =
 		lastLinkType === DRAWING || lastLinkType === FIRST_WORD
 			? WORD
@@ -784,7 +825,12 @@ Game.prototype.newLink = function(res) {
 		//show the word creator
 		this.showWord();
 	} else if (lastLinkType === WORD) {
-		Screen.prototype.setTitle.call(this, "Please draw: " + lastLink.data);
+		Screen.prototype.setTitle.call(
+			this,
+			'<span class="avoidwrap">Please draw:&nbsp;</span><span class="avoidwrap">' +
+				lastLink.data +
+				"</span>"
+		);
 
 		//show drawing creator
 		this.showDrawing();
@@ -802,6 +848,14 @@ Game.prototype.newLink = function(res) {
 	Screen.prototype.setSubtitle.call(
 		this,
 		this.subtitle + " &nbsp; - &nbsp; " + count + "/" + finalCount
+	);
+
+	this.showNeighbors(
+		showNeighbors,
+		playerList,
+		thisPlayer,
+		count,
+		finalCount
 	);
 
 	//this will be ran when the done button is clicked, or
@@ -889,6 +943,46 @@ Game.prototype.setTimer = function() {
 	}
 };
 
+Game.prototype.showNeighbors = function(
+	showNeighbors,
+	playerList,
+	thisPlayer,
+	count,
+	finalCount
+) {
+	if (!showNeighbors) {
+		this.neighboringPlayers.addClass(HIDDEN);
+		return;
+	}
+
+	this.neighboringPlayers.removeClass(HIDDEN);
+
+	var playerIdx;
+	var numPlayers = playerList.length;
+	for (playerIdx = 0; playerIdx < numPlayers; playerIdx++) {
+		if (playerList[playerIdx].id === thisPlayer.id) {
+			break;
+		}
+	}
+	this.leftPlayer.text(playerList[(playerIdx + 1) % numPlayers].name);
+	this.youPlayer.text(thisPlayer.name);
+	this.rightPlayer.text(
+		playerList[(playerIdx - 1 + numPlayers) % numPlayers].name
+	);
+
+	if (count > 1) {
+		showElement("#previous-player-container");
+		showElement("#previous-player-arrow");
+	}
+
+	console.log(count, finalCount);
+
+	if (count === finalCount) {
+		$("#next-player-container").addClass(HIDDEN);
+		$("#next-player-arrow").addClass(HIDDEN);
+	}
+};
+
 Results.prototype = Object.create(Screen.prototype);
 
 function Results(onDoneViewingResults) {
@@ -953,29 +1047,31 @@ Results.prototype.displayChain = function(chain) {
 		var link = chain.links[i];
 		if (i === 0 && link.type === WORD) {
 			results.append(
-				"<h3>The first word:</h3><h1>" + link.data + "</h1>"
+				'<h4>The first word:</h4><h1 class="mb-4">' +
+					link.data +
+					"</h1>"
 			);
 		} else if (i === 1 && chain.links[0].type === FIRST_WORD) {
 			results.append(
-				"<h3>" +
+				"<h4>" +
 					link.player.name +
-					" wanted someone to draw:</h3><h1>" +
+					' wanted someone to draw:</h4><h1 class="mb-4">' +
 					link.data +
 					"</h1>"
 			);
 		} else if (link.type === DRAWING) {
 			results.append(
-				"<h3>" +
+				"<h4>" +
 					link.player.name +
-					' drew:</h3><img class="drawing" src="' +
+					' drew:</h4><img class="drawing mb-4" src="' +
 					link.data +
 					'"></img>'
 			);
 		} else if (link.type === WORD) {
 			results.append(
-				"<h3>" +
+				"<h4>" +
 					link.player.name +
-					" thought that was:</h3><h1>" +
+					' thought that was:</h4><h1 class="mb-4">' +
 					link.data +
 					"</h1>"
 			);
@@ -986,13 +1082,13 @@ Results.prototype.displayChain = function(chain) {
 	wentFromBox += '<br><div class="well">';
 	var firstIndex = chain.links[0].type === FIRST_WORD ? 1 : 0;
 	wentFromBox +=
-		"<h4>You started with:</h4><h2>" +
+		"<h4>You started with:</h4><h1>" +
 		chain.links[firstIndex].data +
-		"</h2><br>";
+		"</h1><br>";
 	wentFromBox +=
-		"<h4>and ended up with:</h4><h2>" +
+		"<h4>and ended up with:</h4><h1>" +
 		chain.links[chain.links.length - 1].data +
-		"</h2>";
+		"</h1>";
 	wentFromBox += "</div>";
 	results.append(wentFromBox);
 };

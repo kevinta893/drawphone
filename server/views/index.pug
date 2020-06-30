@@ -2,32 +2,30 @@ extends layout
 
 block js
   // Drawphone JS
-  script(src='js/client.js')
+  script(src='client.js')
 
 block content
-  div
-    span.glyphicon.glyphicon-pencil(aria-hidden='true',style="padding-right:2px;")
-    span.glyphicon.glyphicon-earphone(aria-hidden='true',style="padding-left:2px;")
+  .mt-3.mb-2
+    img.mr-1(src='pencil-alt.svg' alt='' width='18')
+    img.ml-1(src='phone-alt.svg' alt='' width='18')
   h1#title Drawphone
   p#subtitle Telephone with pictures
   hr
   div#mainmenu
-    .alert.alert-warning(role='warning')
-      | Apologies for Drawphone crashing when lots of people play on Friday and 
-      | Saturday nights! To prevent this in the future, I have upgraded the 
-      | Drawphone server to have 3x more memory. It will cost me a bit more 
-      | monthly, so send a taco my way if you can! 🌮👀
-      br
-      br
-      | Just in case, I've also stopped Drawphone from kicking you out of 
-      | your results if the server crashes. It will also automatically save 
-      | all of you results under the "View Previous Results" button below! 🧐
+    .alert.alert-info(role='info', style="text-align:center;")
+      div Drawphone has gotten a little face lift! 🎉 I've also sprinkled in a few new features; more coming soon!
+    .alert.alert-dark.hide-on-dpk(role='dark', style="text-align:center;")
+      div Try out the brand new Cards Against Humanity: Family Edition word pack! Warning: it's still a little raunchy 😂
+    .alert.alert-success.hide-on-dpk(role='success', style="text-align:center;")
+      div If you are playing Drawphone with kids, try using:
+      a(href='https://dpk.tannerkrewson.com/', style="font-weight:bold;font-family:monospace;font-size:1.2em") dpk.tannerkrewson.com
+      div It is the exact same game, except 13+ word packs are hidden.
     .btn-toolbar
-      button#joinbtn.btn.btn-default.btn-lg(type='button') Join Game
+      button#joinbtn.btn.btn-default.btn-lg.mr-2(type='button') Join Game
       button#newbtn.btn.btn-default.btn-lg(type='button') New Game
     br
     .btn-toolbar
-      button#archivebtn.btn.btn-default(type='button') View Previous Results
+      button#archivebtn.btn.btn-default.mt-2(type='button') View Previous Results
     br
     br
     .btn-group-vertical(role="group" aria-label="...")
@@ -36,12 +34,13 @@ block content
       button#mgbtn.btn.btn-default(type='button') Games Like Drawphone
       a.btn.btn-default(type='button', role='button', href='https://docs.google.com/forms/d/e/1FAIpQLSe0lIL4ZYxyKDNHqv25VkLqOg7tk2VhOcOA-yDAuYxKFx6kyw/viewform', target='_blank') Submit Feedback
       a.btn.btn-default(type='button', role='button', href='https://www.reddit.com/r/boardgames/comments/7lhj20/a_year_ago_i_was_wondering_why_there_were_no/', target='_blank') Original Reddit Post
-      br
-      include buymebutton.pug
-  div.row
-    div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
-      div#joinmenu.hidden
-        h4 Join a game
+    br
+    br
+    include buymebutton.pug
+  div.row.justify-content-center
+    div.col
+      div#joinmenu.d-none
+        h5 Join a game
         form
           .input-container
             label Game Code:
@@ -51,38 +50,41 @@ block content
             .form-group
               input#joininname.form-control(type='text', placeholder='Use your real name!', maxlength=16)
           .btn-toolbar
-            button#joinmenu-back.btn.btn-default.btn-lg(type='button') Back
+            button#joinmenu-back.btn.btn-default.btn-lg.mr-2(type='button') Back
             button#joinmenu-go.btn.btn-default.btn-lg(type='submit') Join
-      div#newmenu.hidden
-        h4 Start a game
+      div#newmenu.d-none
+        h5 Start a game
         form
           .input-container
             label Name:
             .form-group
               input#newinname.form-control(type='text', placeholder='Use your real name!', maxlength=16)
           .btn-toolbar 
-            button#newmenu-back.btn.btn-default.btn-lg(type='button') Back
+            button#newmenu-back.btn.btn-default.btn-lg.mr-2(type='button') Back
             button#newmenu-go.btn.btn-default.btn-lg(type='submit') Start
-  div#lobby.hidden
-    div.row
+  div#lobby.d-none
+    div.row.justify-content-center.mb-2
       div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
-        h4 Players:
+        h5 Players:
         ul#lobby-players.list-unstyled.row
       br
-      button#lobby-prevres.btn.btn-default(type='button').hidden View Last Round's Results
+      button#lobby-prevres.btn.btn-default.mt-2(type='button').d-none View Last Round's Results
       br
-      div#lobby-settings.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2.hidden
-        h4 Game Settings:
-        .checkbox
-          label
-            input#lobby-settings-wordfirst(type='checkbox')
-            | Players write first word (not recommended for first time)
+    div.row.justify-content-center.mb-2
+      div#lobby-settings.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2.d-none
+        h5 Game Settings:
+        .checkboxes.mb-3
+          .custom-control.custom-switch
+            input#lobby-settings-wordfirst.custom-control-input(type='checkbox')
+            label.custom-control-label(for='lobby-settings-wordfirst') Players write first word (not recommended for first time)
+          .custom-control.custom-switch
+            input#lobby-settings-showNeighbors.custom-control-input(type='checkbox')
+            label.custom-control-label(for='lobby-settings-showNeighbors') Show identity of players you are passing to and from
         label Word pack:
-        select.form-control#lobby-settings-wordpack
+        select.form-control#lobby-settings-wordpack.mb-2
           option(disabled='', selected='') Select a word pack...
           for item in wordpacks
             option #{item}
-        br
         label Time limit:
         select.form-control#lobby-settings-timelimit
           option(disabled='', selected='') Select a drawing time limit...
@@ -115,12 +117,12 @@ block content
 
     br
     .btn-toolbar
-      button#lobby-leave.btn.btn-default.btn-lg(type='button') Leave Game
-      button#lobby-start.btn.btn-default.btn-lg.disabled.hidden(type='button') Start Game
+      button#lobby-leave.btn.btn-default.btn-lg.mr-2(type='button') Leave Game
+      button#lobby-start.btn.btn-default.btn-lg.disabled.d-none(type='button') Start Game
     br
     br
-    div.panel.panel-default.thanks-panel
-      div.panel-body
+    div.card.thanks-panel
+      div.card-body
         div Thanks for playing Drawphone!
         p If you had fun, try out my other game:
         a.btn.btn-default(type='button', role='button', href='https://spyfall.tannerkrewson.com/', style='font-size:1.1em;') Play Spyfall
@@ -130,21 +132,33 @@ block content
         include buymebutton.pug
 
 
-  div#game.hidden
-    div#game-drawing.hidden
-      h4#game-timer
+  div#game.d-none
+    div#neighboring-players-container.neighboring-players-container
+      div#previous-player-container.player-name.d-none
+        div Receiving from
+        div#previous-player
+      span#previous-player-arrow
+        img(src='arrow-right.svg' alt='right-arrow' width='24')
+      div#you-player.player-name
+      span#next-player-arrow
+        img(src='arrow-right.svg' alt='right-arrow' width='24')
+      div#next-player-container.player-name
+        div Sending to
+        div#next-player
+    div#game-drawing.d-none
+      h5#game-timer
       canvas#game-drawing-canvas.drawing(width='600', height='600')
-    div#game-word.hidden
+    div#game-word.d-none
       img#game-word-drawingtoname.drawing
       br
       br
       input#game-word-in.form-control(type='text', placeholder='Enter your title here')
     br
-    .btn-toolbar#game-buttons.hidden
-      button#game-drawing-undo.btn.btn-default.btn-lg.disabled(type='button') Undo
-      button#game-drawing-redo.btn.btn-default.btn-lg.disabled(type='button') Redo
+    .btn-toolbar#game-buttons.d-none
+      button#game-drawing-undo.btn.btn-default.btn-lg.disabled.mr-2(type='button') Undo
+      button#game-drawing-redo.btn.btn-default.btn-lg.disabled.mr-2(type='button') Redo
       button#game-send.btn.btn-default.btn-lg(type='button') Done
-  div#result.hidden
+  div#result.d-none
     div#result-content
     br
     #result-others.btn-group-vertical(role='group', aria-label='...')
@@ -152,24 +166,24 @@ block content
     br
     .btn-toolbar#result-buttons
       button#result-done.btn.btn-default.btn-lg(type='button') Done
-  div#waiting.hidden
+  div#waiting.d-none
     div.row
       div.col-sm-6.col-sm-offset-3.col-xs-8.col-xs-offset-2
-        h4 Still waiting for:
+        h5 Still waiting for:
         ul#waiting-players.list-unstyled.row
-        div#waiting-adminmsg.hidden
+        div#waiting-adminmsg.d-none
           br
-          h4 A note to the admin:
+          h5 A note to the admin:
           p If someone has left the game and their box is still white, tap 
             | their box to put them up for replacement. Anyone will be able to 
             | rejoin in their place.
-        div#waiting-disconnectedmsg.hidden
+        div#waiting-disconnectedmsg.d-none
           br
-          h4 Someone left!
+          h5 Someone left!
           p It looks like someone has disconnected. They are marked by a grey 
             | box above. The game will continue when someone joins this game to 
             | take their place.
-  div#replace.hidden
+  div#replace.d-none
     div#replace-choices
     br
     .btn-toolbar#replace-buttons
