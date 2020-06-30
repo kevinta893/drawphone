@@ -7,19 +7,45 @@
 var app = require('../app');
 var debug = require('debug')('drawphone:server');
 var http = require('http');
+var https = require('https');
+var fs = require('fs');
 
 /**
- * Get port from environment and store in Express.
+ * Use certificates if provided
+ */
+
+var privateKeyPath = ("bin/server.key");
+var certificatePath = ("bin/server.crt");
+var hasPrivateKey = fs.existsSync(privateKeyPath);
+var hasCertificate = fs.existsSync(certificatePath);
+var httpsCertificatesExist = hasPrivateKey && hasCertificate;
+
+
+/**
+ * Get port from the environment variables and store in Express.
  */
 
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 /**
- * Create HTTP server.
+ * Create server. Use HTTPS if possible
  */
 
-var server = http.createServer(app);
+var server;
+if (httpsCertificatesExist){
+	// HTTPS
+	console.warn("Creating HTTPS server.");
+	var privateKey = fs.readFileSync(privateKeyPath);
+	var certificate = fs.readFileSync(certificatePath);
+	var credentials = {key: privateKey, cert: certificate};
+	server = https.createServer(credentials);
+} else {
+	// HTTP
+	console.warn("Private key or certificate not found. Using HTTP instead.");
+	console.info("Creating HTTP server.");
+	server = http.createServer(app);
+} 
 
 /**
  * Attach Socket.IO to the Express server.

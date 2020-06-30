@@ -22,6 +22,15 @@ Drawphone was inspired by [Spyfall](https://github.com/evanbrumley/spyfall) and 
 3. Run `npm install`, then `npm start` to launch the server
 4. Go to `localhost:3000` in your browser
 
+#### Setting up HTTPS
+
+This step is optional for development.
+
+1. Create a certificate and private key files and place them in the `bin` folder
+2. Name these files `server.crt` and `server.key` respectively
+
+You may want to generate a certificate using [Certbot](https://certbot.eff.org/) from Let's Encrypt.
+
 #### Tips
 
 -   To change the default port, set the `PORT` environment variable

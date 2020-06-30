@@ -60,3 +60,8 @@ typings/
 # Credentials
 .travis/*.key
 .travis/*.key.pub
+
+# Server Credentials
+bin/*.key
+bin/*.pem
+bin/*.crt
