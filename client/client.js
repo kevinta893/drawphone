@@ -638,7 +638,7 @@ Lobby.prototype.start = function() {
 	socket.emit("tryStartGame", {
 		timeLimit: this.selectedTimeLimit,
 		wordPackName: this.wordPack,
-		numRounds: this.selectedNumRounds
+		numRounds: this.selectedNumRounds,
 		showNeighbors: this.showNeighbors
 	});
 	ga("send", "event", "Game", "start");
